@@ -1,0 +1,96 @@
+--checking the dataset 
+select *
+from [work].[dbo].[Orespotify]
+
+--converting time column to nvarchar inorder to split the time and date into diff columns
+alter table [work].[dbo].[Orespotify]
+alter column [Time] nvarchar(max)
+
+--drop irrelevant column
+alter table [work].[dbo].[Orespotify]
+drop column column4
+
+-- number of artist
+select count(distinct(Artist))
+from  work.dbo.Orespotify
+
+-- number of track
+select count(distinct(Track))
+from  work.dbo.Orespotify
+
+-- adding new columns dates & times 
+alter table  [work].[dbo].[Orespotify]
+add times time
+
+alter table  [work].[dbo].[Orespotify]
+add dates date
+
+--performation the spliting of time and date into sperate columns 
+with track_cte as (
+	select track,
+	trim(value) as vl,
+	row_number() over(PARTITION BY track order by Artist) as rn
+	from work.dbo.Orespotify
+	cross apply string_split([time], ' ')
+),
+	date_time as (
+	select track,
+	max (case when rn = 1 then vl end) as  date_s,
+	max (case when rn = 2 then vl end) as  Time_s
+	from track_cte
+	group by Track
+)
+update  t1
+set t1.dates = t2.date_s,
+	t1.times = t2.time_s
+from work.dbo.Orespotify t1
+join date_time t2
+on t1.track = t2.track
+
+
+-- dropping the time column
+alter table [work].[dbo].[Orespotify]
+drop column [Time]
+
+-- This how many distinct(songs) of each artist i played 
+select TOP 5 count(distinct(Track)) as Nu_Songs_played_this_week, Artist
+from  work.dbo.Orespotify
+group by  Artist
+ORDER by Nu_Songs_played_this_week desc;
+
+
+-- most played songs
+select TOP 5 track, COUNT(track) as Most_played_songs
+from work.dbo.Orespotify
+group by track
+order by Most_played_songs desc
+
+
+-- must played artist
+select TOP 5 Artist, COUNT(Artist) as Most_played_artist
+from work.dbo.Orespotify
+group by Artist
+order by Most_played_artist desc;
+
+-- This showed total distinc(songs) i played in a day
+select  dates, count(distinct(Track)) as Total_songs_played_in_a_day
+from work.dbo.[Orespotify]
+group by dates;
+
+
+-- my peak hours on each day
+with peak_cte as (
+select 
+convert(date, dates) as dailylistein,
+DATEPART(HOUR, times) as hourlyListein,
+count(*) as listining_count,
+row_number() over(partition by convert(date, dates)order by count(*) desc) as HourRank
+from work.dbo.[Orespotify]
+group by 
+convert(date, dates) ,
+DATEPART(HOUR, times) 
+)
+select *
+from peak_cte
+where HourRank = 1
+order by dailylistein
