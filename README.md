@@ -6,8 +6,8 @@ I analyzed my Spotify listening habits for a week (Feb 23 – Feb 28, 2025) usin
 2️⃣ Renamed columns for clarity.
 3️⃣ Standardized the date column data type.
 4️⃣ Separated date and time for easier analysis.
-5️⃣ Calculated total songs played: 156.
-6️⃣ Counted distinct artists listened to: 325.
+5️⃣ Calculated total songs played: 325. 
+6️⃣ Counted distinct artists listened to: 156.
 
 🔹 Most Played Songs:
 Track	Play Count
